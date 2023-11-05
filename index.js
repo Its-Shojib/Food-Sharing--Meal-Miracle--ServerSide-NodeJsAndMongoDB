@@ -3,7 +3,7 @@ const express = require('express')
 const cors = require('cors')
 const app = express()
 require('dotenv').config()
-const port =process.env.PORT || 5000
+const port = process.env.PORT || 5000
 
 /* Using Middleware */
 app.use(cors());
@@ -26,12 +26,23 @@ async function run() {
   try {
 
     const foodCollection = client.db("Meal-Miracle-DB").collection('foods');
-    
+
     /*Insert Food Operation*/
-    app.post('/foods', async(req,res)=>{
-        let newFood = req.body;
-        let result = await foodCollection.insertOne(newFood);
-        res.send(result);
+    app.post('/foods', async (req, res) => {
+      let newFood = req.body;
+      let result = await foodCollection.insertOne(newFood);
+      res.send(result);
+    })
+
+    /* Load Manage my Food */
+    app.get('/myfood', async (req, res) => {
+      let query = {};
+      console.log(req.query.email);
+      if (req.query?.email) {
+        query = { donorEmail: req.query.email }
+      }
+      const result = await foodCollection.find(query).toArray();
+      res.send(result);
     })
 
 
