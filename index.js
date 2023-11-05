@@ -48,13 +48,24 @@ async function run() {
     /* Load All Available Food */
     app.get('/available-food', async (req, res) => {
       let query = {};
+      let page = parseInt(req.query.page)
+      let size = parseInt(req.query.size)
       console.log(req.query.foodStatus);
       console.log(req.query.foodStatus);
       if (req.query?.foodStatus) {
         query = { foodStatus: req.query.foodStatus }
       }
-      const result = await foodCollection.find(query).toArray();
+      const result = await foodCollection.find(query)
+      .skip(page*size)
+      .limit(size)
+      .toArray();
       res.send(result);
+    })
+
+    app.get('/available-food/productCount', async(req, res) => {
+      let count = await foodCollection.estimatedDocumentCount()
+        
+        res.send({count});
     })
 
     /*Load Single food */
