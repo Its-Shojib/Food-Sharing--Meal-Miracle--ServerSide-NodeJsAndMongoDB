@@ -1,4 +1,4 @@
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const express = require('express')
 const cors = require('cors')
 const app = express()
@@ -42,6 +42,31 @@ async function run() {
         query = { donorEmail: req.query.email }
       }
       const result = await foodCollection.find(query).toArray();
+      res.send(result);
+    })
+
+    /* Load All Available Food */
+    app.get('/available-food', async (req, res) => {
+      let query = {};
+      console.log(req.query.foodStatus);
+      console.log(req.query.foodStatus);
+      if (req.query?.foodStatus) {
+        query = { foodStatus: req.query.foodStatus }
+      }
+      const result = await foodCollection.find(query).toArray();
+      res.send(result);
+    })
+
+    /*Load Single food */
+    app.get('/food/:id', async(req,res)=>{
+      let id = req.params.id;
+      let query = {_id : new ObjectId(id)};
+      let result = await foodCollection.findOne(query);
+      res.send(result);
+    })
+
+    app.get('/', async(req,res)=>{
+      let result = await foodCollection.find().sort({ foodQuantity: -1 }).limit(6).toArray();
       res.send(result);
     })
 
