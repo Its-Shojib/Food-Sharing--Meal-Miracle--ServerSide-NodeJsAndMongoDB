@@ -45,30 +45,28 @@ async function run() {
       res.send(result);
     })
 
-    /* Load All Available Food */
-    app.get('/available-food', async (req, res) => {
+
+    /*for sorting in available food page */
+    app.get('/available-food', async(req,res)=>{
       let query = {};
-      let page = parseInt(req.query.page)
-      let size = parseInt(req.query.size)
-      console.log(req.query.foodStatus);
-      console.log(req.query.foodStatus);
-      if (req.query?.foodStatus) {
-        query = { foodStatus: req.query.foodStatus }
+      let sortVal = parseInt(req.query.sortOrder);
+
+      if(req.query?.foodStatus){
+        query = { foodStatus: req.query.foodStatus}
       }
       const result = await foodCollection.find(query)
-      .skip(page*size)
-      .limit(size)
+      .sort({ expDate: sortVal })
       .toArray();
-      res.send(result);
-    })
+      res.send(result)
+    });
 
+    /*For count data in food Available page */
     app.get('/available-food/productCount', async(req, res) => {
       let count = await foodCollection.estimatedDocumentCount()
-        
         res.send({count});
     })
 
-    /*Load Single food */
+    /*Load Single food (ViewDetails) */
     app.get('/food/:id', async(req,res)=>{
       let id = req.params.id;
       let query = {_id : new ObjectId(id)};
@@ -76,6 +74,7 @@ async function run() {
       res.send(result);
     })
 
+    /*For Home page data */
     app.get('/', async(req,res)=>{
       let result = await foodCollection.find().sort({ foodQuantity: -1 }).limit(6).toArray();
       res.send(result);
