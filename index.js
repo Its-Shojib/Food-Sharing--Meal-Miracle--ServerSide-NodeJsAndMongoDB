@@ -80,6 +80,14 @@ async function run() {
       let result = await foodCollection.find().sort({ foodQuantity: -1 }).limit(6).toArray();
       res.send(result);
     })
+    /*Delete Manage my food */
+    app.delete('/manage-my-food/:id', async (req, res) => {
+      let id = req.params.id;
+      console.log(id);
+      let query = { _id: new ObjectId(id) };
+      let result = await foodCollection.deleteOne(query)
+      res.send(result);
+    })
 
 
 
@@ -102,6 +110,14 @@ async function run() {
       let id = req.params.id;
       console.log(id);
       let query = { _id: new ObjectId(id) };
+      let result = await requestedFoodCollection.deleteOne(query)
+      res.send(result);
+    })
+    /*Delete manage-my-food */
+    app.delete('/request-delete/:id', async (req, res) => {
+      let id = req.params.id;
+      // console.log(id);
+      let query = { id: id };
       let result = await requestedFoodCollection.deleteOne(query)
       res.send(result);
     })
