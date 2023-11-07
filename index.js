@@ -95,6 +95,27 @@ async function run() {
       let result = await foodCollection.deleteOne(query)
       res.send(result);
     })
+    /*Update a Product */
+    app.put('/update-one/:id', async (req, res) => {
+      let id = req.params.id;
+      let query = { _id: new ObjectId(id) }
+      const options = { upsert: true };
+      let updatedFood = req.body;
+      // foodName, foodQuantity, pickupPoint, expDate, foodImg, foodDesp
+      let Food = {
+        $set: {
+          foodName: updatedFood.foodName,
+          foodQuantity: updatedFood.foodQuantity,
+          pickupPoint: updatedFood.pickupPoint,
+          expDate: updatedFood.expDate,
+          foodImg: updatedFood.foodImg,
+          foodDesp: updatedFood.foodDesp,
+
+        }
+      }
+      const result = await foodCollection.updateOne(query, Food, options);
+      res.send(result);
+    })
 
 
 
@@ -126,6 +147,27 @@ async function run() {
       // console.log(id);
       let query = { id: id };
       let result = await requestedFoodCollection.deleteOne(query)
+      res.send(result);
+    })
+
+    /*Update a Requested Product */
+    app.put('/updateOne/:id', async (req, res) => {
+      let id = req.params.id;
+      let query = { id: id }
+      const options = { upsert: true };
+      let updatedFood = req.body;
+      let Food = {
+        $set: {
+          foodName: updatedFood.foodName,
+          foodQuantity: updatedFood.foodQuantity,
+          pickupPoint: updatedFood.pickupPoint,
+          expDate: updatedFood.expDate,
+          foodImg: updatedFood.foodImg,
+          foodDesp: updatedFood.foodDesp,
+
+        }
+      }
+      const result = await requestedFoodCollection.updateOne(query, Food, options);
       res.send(result);
     })
 
