@@ -48,47 +48,61 @@ async function run() {
 
 
     /*for sorting in available food page */
-    app.get('/available-food', async(req,res)=>{
+    app.get('/available-food', async (req, res) => {
       let query = {};
       let sortVal = parseInt(req.query.sortOrder);
 
-      if(req.query?.foodStatus){
-        query = { foodStatus: req.query.foodStatus}
+      if (req.query?.foodStatus) {
+        query = { foodStatus: req.query.foodStatus }
       }
       const result = await foodCollection.find(query)
-      .sort({ expDate: sortVal })
-      .toArray();
+        .sort({ expDate: sortVal })
+        .toArray();
       res.send(result)
     });
 
     /*For count data in food Available page */
-    app.get('/available-food/productCount', async(req, res) => {
+    app.get('/available-food/productCount', async (req, res) => {
       let count = await foodCollection.estimatedDocumentCount()
-        res.send({count});
+      res.send({ count });
     })
 
     /*Load Single food (ViewDetails) */
-    app.get('/food/:id', async(req,res)=>{
+    app.get('/food/:id', async (req, res) => {
       let id = req.params.id;
-      let query = {_id : new ObjectId(id)};
+      let query = { _id: new ObjectId(id) };
       let result = await foodCollection.findOne(query);
       res.send(result);
     })
 
     /*For Home page data */
-    app.get('/', async(req,res)=>{
+    app.get('/', async (req, res) => {
       let result = await foodCollection.find().sort({ foodQuantity: -1 }).limit(6).toArray();
       res.send(result);
     })
 
 
 
-    /*-----------------------------00000000000000000000000--------------------------*/ 
+    /*-----------------------------Requested Foods--------------------------*/
     /*Requested Food Insertion*/
-
     app.post('/requested-food', async (req, res) => {
       let newFood = req.body;
       let result = await requestedFoodCollection.insertOne(newFood);
+      res.send(result);
+    })
+    /*Get the data for my requested food */
+    app.get('/my-requested-food', async (req, res) => {
+      let email = req.query.email;
+      let query = { reqUserEmail: email };
+      let result = await requestedFoodCollection.find(query).toArray();
+      res.send(result);
+    })
+    /*Delete my requested food */
+    app.delete('/my-requested-food/:id', async (req, res) => {
+      let id = req.params.id;
+      console.log(id);
+      let query = { _id: new ObjectId(id) };
+      let result = await requestedFoodCollection.deleteOne(query)
       res.send(result);
     })
 
