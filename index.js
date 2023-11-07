@@ -28,6 +28,9 @@ async function run() {
     const foodCollection = client.db("Meal-Miracle-DB").collection('foods');
     const requestedFoodCollection = client.db("Meal-Miracle-DB").collection('reqFoods');
 
+
+
+    // ------------------------------------(All Food)--------------------------------------
     /*Insert Food Operation*/
     app.post('/foods', async (req, res) => {
       let newFood = req.body;
