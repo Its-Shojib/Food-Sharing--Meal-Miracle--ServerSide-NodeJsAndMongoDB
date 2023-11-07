@@ -2,12 +2,20 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const express = require('express')
 const cors = require('cors')
 const app = express()
+let jwt = require('jsonwebtoken');
 require('dotenv').config()
+let cookieParser = require('cookie-parser')
 const port = process.env.PORT || 5000
 
 /* Using Middleware */
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:5173'
+  ],
+  credentials: true
+}));
 app.use(express.json());
+app.use(cookieParser())
 
 /* Starting MongoDB */
 
@@ -22,26 +30,65 @@ const client = new MongoClient(uri, {
   }
 });
 
+/*Verify Middleware of JWT */
+const verifyToken = async (req, res, next) => {
+  let token = req?.cookies?.token;
+  console.log('Value of token in middleware: ', token);
+  if (!token) {
+    return res.status(401).send({ message: 'Not Authorized' })
+  }
+  jwt.verify(token, process.env.TOKEN_SECRET, (err, decoded) => {
+    if (err) {
+      console.log(err);
+      return res.status(401).send({ message: 'UnAuthorized' })
+    }
+    console.log('value in the token', decoded);
+    req.user = decoded;
+    next();
+  })
+
+}
+
 async function run() {
   try {
 
     const foodCollection = client.db("Meal-Miracle-DB").collection('foods');
     const requestedFoodCollection = client.db("Meal-Miracle-DB").collection('reqFoods');
 
+    // -------------------------------------AUTH---------------------------------------------
+    app.post('/jwt', async (req, res) => {
+      let user = req.body;
+      let token = jwt.sign(user, process.env.TOKEN_SECRET, { expiresIn: '1h' });
+      res
+        .cookie('token', token, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'none'
+        })
+        .send({ token });
+    })
+
+    /*Logout APi */
+    app.post('/logout', async (req, res) => {
+      let user = req.body;
+      res.clearCookie('token', { maxAge: 0 }).send({ success: true })
+    })
 
 
     // ------------------------------------(All Food)--------------------------------------
-    /*Insert Food Operation*/
+    /*Insert Food Operation (Add Food)*/
     app.post('/foods', async (req, res) => {
       let newFood = req.body;
       let result = await foodCollection.insertOne(newFood);
       res.send(result);
     })
 
-    /* Load Manage my Food */
-    app.get('/myfood', async (req, res) => {
+    /* Load Manage my Food(Manage My Food) */
+    app.get('/myfood',verifyToken, async (req, res) => {
+      if(req.user.email != req.query.email){
+        return res.status(403).send({message: 'Forbidded access'})
+      }
       let query = {};
-      console.log(req.query.email);
       if (req.query?.email) {
         query = { donorEmail: req.query.email }
       }
@@ -50,7 +97,7 @@ async function run() {
     })
 
 
-    /*for sorting in available food page */
+    /*for sorting in available food page (Available Food)*/
     app.get('/available-food', async (req, res) => {
       let query = {};
       let sortVal = parseInt(req.query.sortOrder);
@@ -64,21 +111,15 @@ async function run() {
       res.send(result)
     });
 
-    /*For count data in food Available page */
-    app.get('/available-food/productCount', async (req, res) => {
-      let count = await foodCollection.estimatedDocumentCount()
-      res.send({ count });
-    })
-
     /*Load Single food (ViewDetails) */
-    app.get('/food/:id', async (req, res) => {
+    app.get('/food/:id',verifyToken, async (req, res) => {
       let id = req.params.id;
       let query = { _id: new ObjectId(id) };
       let result = await foodCollection.findOne(query);
       res.send(result);
     })
     /*Load Single food (Update Food) */
-    app.get('/update/:id', async (req, res) => {
+    app.get('/update/:id',verifyToken, async (req, res) => {
       let id = req.params.id;
       let query = { _id: new ObjectId(id) };
       let result = await foodCollection.findOne(query);
@@ -86,8 +127,9 @@ async function run() {
     })
 
     /*For Home page data */
-    app.get('/', async (req, res) => {
-      let result = await foodCollection.find().sort({ foodQuantity: -1 }).limit(6).toArray();
+    app.get('/home', async (req, res) => {
+      let query = { foodStatus: 'available' }
+      let result = await foodCollection.find(query).sort({ foodQuantity: -1 }).limit(6).toArray();
       res.send(result);
     })
     /*Delete Manage my food */
@@ -104,7 +146,6 @@ async function run() {
       let query = { _id: new ObjectId(id) }
       const options = { upsert: true };
       let updatedFood = req.body;
-      // foodName, foodQuantity, pickupPoint, expDate, foodImg, foodDesp
       let Food = {
         $set: {
           foodName: updatedFood.foodName,
@@ -113,7 +154,20 @@ async function run() {
           expDate: updatedFood.expDate,
           foodImg: updatedFood.foodImg,
           foodDesp: updatedFood.foodDesp,
-
+        }
+      }
+      const result = await foodCollection.updateOne(query, Food, options);
+      res.send(result);
+    })
+    /*Update Food Status */
+    app.put('/updateStatus/:id', async (req, res) => {
+      let id = req.params.id;
+      let query = { _id: new ObjectId(id) }
+      const options = { upsert: true };
+      let updatedStatus = req.body;
+      let Food = {
+        $set: {
+          foodStatus: updatedStatus.foodStatus
         }
       }
       const result = await foodCollection.updateOne(query, Food, options);
@@ -130,7 +184,12 @@ async function run() {
       res.send(result);
     })
     /*Get the data for my requested food */
-    app.get('/my-requested-food', async (req, res) => {
+    app.get('/my-requested-food', verifyToken, async (req, res) => {
+      console.log(req.user.email);
+      console.log(req.query.email);
+      if (req.query.email !== req.user.email) {
+        return res.status(403).send({ message: 'Forbidded access' })
+      }
       let email = req.query.email;
       let query = { reqUserEmail: email };
       let result = await requestedFoodCollection.find(query).toArray();
@@ -175,10 +234,26 @@ async function run() {
     })
 
     /*Manage a Single Food */
-    app.get('/manage/:id', async (req, res) => {
+    app.get('/manage/:id',verifyToken, async (req, res) => {
       let id = req.params.id;
+      console.log(id);
       let query = { id: id };
-      let result = await requestedFoodCollection.findOne(query);
+      let result = await requestedFoodCollection.find(query).toArray();
+      res.send(result);
+    })
+
+    /*Update Food Status */
+    app.put('/updateReqStatus/:id', async (req, res) => {
+      let id = req.params.id;
+      let query = { id: id }
+      const options = { upsert: true };
+      let updatedStatus = req.body;
+      let Food = {
+        $set: {
+          foodStatus: updatedStatus.foodStatus
+        }
+      }
+      const result = await requestedFoodCollection.updateOne(query, Food, options);
       res.send(result);
     })
 
