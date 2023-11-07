@@ -74,6 +74,13 @@ async function run() {
       let result = await foodCollection.findOne(query);
       res.send(result);
     })
+    /*Load Single food (Update Food) */
+    app.get('/update/:id', async (req, res) => {
+      let id = req.params.id;
+      let query = { _id: new ObjectId(id) };
+      let result = await foodCollection.findOne(query);
+      res.send(result);
+    })
 
     /*For Home page data */
     app.get('/', async (req, res) => {
