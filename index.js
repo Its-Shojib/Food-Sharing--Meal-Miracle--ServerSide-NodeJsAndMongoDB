@@ -174,7 +174,13 @@ async function run() {
       res.send(result);
     })
 
-
+    /*Manage a Single Food */
+    app.get('/manage/:id', async (req, res) => {
+      let id = req.params.id;
+      let query = { id: id };
+      let result = await requestedFoodCollection.findOne(query);
+      res.send(result);
+    })
 
 
     // Connect the client to the server	(optional starting in v4.7)
