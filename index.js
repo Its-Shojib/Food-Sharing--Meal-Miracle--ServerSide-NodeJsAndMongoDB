@@ -73,6 +73,7 @@ async function run() {
     /*Logout APi */
     app.post('/logout', async (req, res) => {
       let user = req.body;
+      console.log("user for logout: ", user);
       res.clearCookie('token', { maxAge: 0 }).send({ success: true })
     })
 
