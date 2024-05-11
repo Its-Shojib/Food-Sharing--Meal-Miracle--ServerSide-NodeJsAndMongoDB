@@ -7,6 +7,8 @@ require('dotenv').config()
 let cookieParser = require('cookie-parser')
 const port = process.env.PORT || 5000
 
+
+
 /* Using Middleware */
 app.use(cors({
   origin: [
@@ -73,7 +75,7 @@ async function run() {
     /*Logout APi */
     app.post('/logout', async (req, res) => {
       let user = req.body;
-      res.clearCookie('token', { maxAge: 0,sameSite: 'none', secure: true }).send({ success: true })
+      res.clearCookie('token', { maxAge: 0, sameSite: 'none', secure: true }).send({ success: true })
     });
 
 
@@ -86,9 +88,9 @@ async function run() {
     });
 
     /* Load Manage my Food(Manage My Food) */
-    app.get('/myfood',verifyToken, async (req, res) => {
-      if(req.user.email != req.query.email){
-        return res.status(403).send({message: 'Forbidded access'})
+    app.get('/myfood', verifyToken, async (req, res) => {
+      if (req.user.email != req.query.email) {
+        return res.status(403).send({ message: 'Forbidded access' })
       }
       let query = {};
       if (req.query?.email) {
@@ -116,7 +118,7 @@ async function run() {
 
 
     /*Load Single food (ViewDetails) */
-    app.get('/food/:id',verifyToken, async (req, res) => {
+    app.get('/food/:id', verifyToken, async (req, res) => {
       let id = req.params.id;
       let query = { _id: new ObjectId(id) };
       let result = await foodCollection.findOne(query);
@@ -125,7 +127,7 @@ async function run() {
 
 
     /*Load Single food (Update Food) */
-    app.get('/update/:id',verifyToken, async (req, res) => {
+    app.get('/update/:id', verifyToken, async (req, res) => {
       let id = req.params.id;
       let query = { _id: new ObjectId(id) };
       let result = await foodCollection.findOne(query);
@@ -256,7 +258,7 @@ async function run() {
     });
 
     /*Manage a Single Food */
-    app.get('/manage/:id',verifyToken, async (req, res) => {
+    app.get('/manage/:id', verifyToken, async (req, res) => {
       let id = req.params.id;
       console.log(id);
       let query = { id: id };
