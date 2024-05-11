@@ -73,9 +73,8 @@ async function run() {
     /*Logout APi */
     app.post('/logout', async (req, res) => {
       let user = req.body;
-      console.log("user for logout: ", user);
       res.clearCookie('token', { maxAge: 0,sameSite: 'none', secure: true }).send({ success: true })
-    })
+    });
 
 
     // ------------------------------------(All Food)--------------------------------------
@@ -84,7 +83,7 @@ async function run() {
       let newFood = req.body;
       let result = await foodCollection.insertOne(newFood);
       res.send(result);
-    })
+    });
 
     /* Load Manage my Food(Manage My Food) */
     app.get('/myfood',verifyToken, async (req, res) => {
@@ -97,7 +96,7 @@ async function run() {
       }
       const result = await foodCollection.find(query).toArray();
       res.send(result);
-    })
+    });
 
 
     /*for sorting in available food page (Available Food)*/
@@ -114,27 +113,36 @@ async function run() {
       res.send(result)
     });
 
+
+
     /*Load Single food (ViewDetails) */
     app.get('/food/:id',verifyToken, async (req, res) => {
       let id = req.params.id;
       let query = { _id: new ObjectId(id) };
       let result = await foodCollection.findOne(query);
       res.send(result);
-    })
+    });
+
+
     /*Load Single food (Update Food) */
     app.get('/update/:id',verifyToken, async (req, res) => {
       let id = req.params.id;
       let query = { _id: new ObjectId(id) };
       let result = await foodCollection.findOne(query);
       res.send(result);
-    })
+    });
+
+
 
     /*For Home page data */
     app.get('/home', async (req, res) => {
       let query = { foodStatus: 'available' }
       let result = await foodCollection.find(query).sort({ foodQuantity: -1 }).limit(6).toArray();
       res.send(result);
-    })
+    });
+
+
+
     /*Delete Manage my food */
     app.delete('/manage-my-food/:id', async (req, res) => {
       let id = req.params.id;
@@ -142,7 +150,9 @@ async function run() {
       let query = { _id: new ObjectId(id) };
       let result = await foodCollection.deleteOne(query)
       res.send(result);
-    })
+    });
+
+
     /*Update a Product */
     app.put('/update-one/:id', async (req, res) => {
       let id = req.params.id;
@@ -161,7 +171,9 @@ async function run() {
       }
       const result = await foodCollection.updateOne(query, Food, options);
       res.send(result);
-    })
+    });
+
+
     /*Update Food Status */
     app.put('/updateStatus/:id', async (req, res) => {
       let id = req.params.id;
@@ -175,7 +187,7 @@ async function run() {
       }
       const result = await foodCollection.updateOne(query, Food, options);
       res.send(result);
-    })
+    });
 
 
 
@@ -185,7 +197,9 @@ async function run() {
       let newFood = req.body;
       let result = await requestedFoodCollection.insertOne(newFood);
       res.send(result);
-    })
+    });
+
+
     /*Get the data for my requested food */
     app.get('/my-requested-food', verifyToken, async (req, res) => {
       console.log(req.user.email);
@@ -197,7 +211,9 @@ async function run() {
       let query = { reqUserEmail: email };
       let result = await requestedFoodCollection.find(query).toArray();
       res.send(result);
-    })
+    });
+
+
     /*Delete my requested food */
     app.delete('/my-requested-food/:id', async (req, res) => {
       let id = req.params.id;
@@ -205,7 +221,9 @@ async function run() {
       let query = { _id: new ObjectId(id) };
       let result = await requestedFoodCollection.deleteOne(query)
       res.send(result);
-    })
+    });
+
+
     /*Delete manage-my-food */
     app.delete('/request-delete/:id', async (req, res) => {
       let id = req.params.id;
@@ -213,7 +231,8 @@ async function run() {
       let query = { id: id };
       let result = await requestedFoodCollection.deleteOne(query)
       res.send(result);
-    })
+    });
+
 
     /*Update a Requested Product */
     app.put('/updateOne/:id', async (req, res) => {
@@ -234,7 +253,7 @@ async function run() {
       }
       const result = await requestedFoodCollection.updateOne(query, Food, options);
       res.send(result);
-    })
+    });
 
     /*Manage a Single Food */
     app.get('/manage/:id',verifyToken, async (req, res) => {
@@ -243,7 +262,7 @@ async function run() {
       let query = { id: id };
       let result = await requestedFoodCollection.find(query).toArray();
       res.send(result);
-    })
+    });
 
     /*Update Food Status */
     app.put('/updateReqStatus/:id', async (req, res) => {
@@ -258,7 +277,7 @@ async function run() {
       }
       const result = await requestedFoodCollection.updateOne(query, Food, options);
       res.send(result);
-    })
+    });
 
 
     // Connect the client to the server	(optional starting in v4.7)
